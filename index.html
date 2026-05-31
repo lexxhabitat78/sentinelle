@@ -3,415 +3,450 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SENTINELLE | Cellule Privée d'Intelligence Concurrentielle</title>
+    <title>SENTINELLE | Opérations Spéciales d'Intelligence Concurrentielle</title>
     <style>
         :root {
-            --bg-raw: #030508;
-            --bg-surface: #090d14;
-            --bg-surface-elevated: #111823;
-            --neon-pulse: #00ff66;
-            --neon-glow: rgba(0, 255, 102, 0.12);
+            --bg-raw: #020406;
+            --bg-surface: #060a10;
+            --bg-surface-elevated: #0d131f;
+            --neon: #00ff66;
+            --neon-glow: rgba(0, 255, 102, 0.15);
+            --neon-alert: #ff3333;
             --text-primary: #ffffff;
-            --text-secondary: #7e8f9f;
-            --text-dark: #3a4755;
-            --border-matrix: #141f2f;
-            --font-tech: 'Space Grotesk', system-ui, sans-serif;
+            --text-secondary: #5e7288;
+            --text-dark: #222f3e;
+            --border-matrix: #101a26;
+            --font-tech: 'Space Grotesk', monospace;
         }
 
         * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: var(--font-tech);
-            scroll-behavior: smooth;
+            margin: 0; padding: 0; box-sizing: border-box;
+            font-family: var(--font-tech); user-select: none;
         }
 
         body {
-            background-color: var(--bg-raw);
-            color: var(--text-primary);
-            line-height: 1.6;
-            overflow-x: hidden;
+            background-color: var(--bg-raw); color: var(--text-primary);
+            overflow: hidden; height: 100vh; width: 100vw;
         }
 
-        /* Scanline & Grid Overlays (No-IA Aesthetic) */
-        .cyber-grid {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background-image: linear-gradient(var(--border-matrix) 1px, transparent 1px),
-                              linear-gradient(90deg, var(--border-matrix) 1px, transparent 1px);
-            background-size: 80px 80px;
-            opacity: 0.1;
-            z-index: -2;
-            pointer-events: none;
+        /* --- ANIMATION INTRO : LOG IN ESPION --- */
+        #intro-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #020305; z-index: 9999; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            padding: 2rem; box-shadow: inset 0 0 100px rgba(0,0,0,0.8);
         }
 
-        /* Interface Frame */
+        .boot-loader {
+            width: 500px; max-width: 100%; font-family: monospace;
+            font-size: 0.85rem; color: var(--neon); line-height: 1.4;
+        }
+
+        .scan-bar {
+            width: 100%; height: 2px; background: var(--neon);
+            box-shadow: 0 0 15px var(--neon); margin: 1.5rem 0;
+            animation: scan 2s ease-in-out infinite;
+        }
+
+        @keyframes scan {
+            0% { transform: translateY(-10px); opacity: 0.3; }
+            50% { transform: translateY(10px); opacity: 1; }
+            100% { transform: translateY(-10px); opacity: 0.3; }
+        }
+
+        .access-btn {
+            background: transparent; color: var(--neon);
+            border: 1px solid var(--neon); padding: 1rem 3rem;
+            font-weight: bold; letter-spacing: 5px; text-transform: uppercase;
+            cursor: pointer; margin-top: 2rem; opacity: 0; visibility: hidden;
+            transition: all 0.3s; font-family: monospace;
+            box-shadow: 0 0 10px var(--neon-glow);
+        }
+
+        .access-btn.ready { opacity: 1; visibility: visible; animation: blink 1s infinite; }
+        .access-btn:hover { background: var(--neon); color: var(--bg-raw); box-shadow: 0 0 20px var(--neon); }
+
+        /* --- STRUCTURE DE L'APPLICATION --- */
+        .app-container {
+            display: grid; grid-template-rows: 70px 1fr 40px;
+            height: 100vh; width: 100vw; opacity: 0; transition: opacity 1s ease;
+        }
+
+        /* Lignes de balayage d'écran (Effet CRT Espion) */
+        .scanlines {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.06), rgba(0, 255, 0, 0.02), rgba(0, 0, 255, 0.06));
+            background-size: 100% 4px, 6px 100%; z-index: 999; pointer-events: none;
+        }
+
+        /* Global Header / Terminal Top Bar */
         header {
-            max-width: 1400px;
-            margin: 0 auto;
-            padding: 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid var(--border-matrix);
+            background: var(--bg-surface); border-bottom: 1px solid var(--border-matrix);
+            display: flex; justify-content: space-between; align-items: center; padding: 0 2rem;
         }
 
-        .brand {
-            font-weight: 900;
-            font-size: 1.5rem;
-            letter-spacing: 6px;
-            text-transform: uppercase;
+        .brand-panel { display: flex; align-items: center; gap: 2rem; }
+        .logo { font-weight: 900; letter-spacing: 5px; font-size: 1.3rem; }
+        .logo span { color: var(--neon); }
+
+        /* Navigation Onglets (Multi-pages sans rechargement) */
+        nav { display: flex; height: 100%; }
+        .nav-tab {
+            background: transparent; border: none; color: var(--text-secondary);
+            padding: 0 1.5rem; height: 100%; display: flex; align-items: center;
+            cursor: pointer; font-size: 0.85rem; text-transform: uppercase;
+            letter-spacing: 2px; border-left: 1px solid var(--border-matrix);
+            transition: all 0.2s; position: relative;
+        }
+        .nav-tab:hover { color: var(--text-primary); background: var(--bg-surface-elevated); }
+        .nav-tab.active {
+            color: var(--neon); background: var(--bg-surface-elevated);
+            font-weight: bold;
+        }
+        .nav-tab.active::after {
+            content: ''; position: absolute; bottom: 0; left: 0; width: 100%; height: 2px; background: var(--neon);
         }
 
-        .brand span { color: var(--neon-pulse); }
-
-        .console-status {
-            font-family: monospace;
-            font-size: 0.8rem;
-            color: var(--neon-pulse);
-            background: var(--neon-glow);
-            padding: 6px 14px;
-            border: 1px solid rgba(0, 255, 102, 0.3);
-            border-radius: 2px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
-        .blink {
-            width: 8px; height: 8px; background: var(--neon-pulse);
-            border-radius: 50%; animation: pulse 1.5s infinite;
-        }
-
-        @keyframes pulse {
-            0% { opacity: 0.3; } 50% { opacity: 1; } 100% { opacity: 0.3; }
-        }
-
-        /* Hero */
-        .container-hero {
-            max-width: 1200px;
-            margin: 8rem auto;
-            padding: 0 2rem;
+        /* --- ZONE DE CONTENU DYNAMIQUE --- */
+        .main-content {
+            padding: 2rem; overflow-y: auto; background: var(--bg-raw);
             position: relative;
         }
 
-        .intel-tag {
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            letter-spacing: 4px;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-            display: block;
+        .page-panel { display: none; animation: fadeIn 0.4s ease forwards; }
+        .page-panel.active { display: block; }
+
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- COEUR DES PAGES : COMPLEXITÉ & INFOS --- */
+        .grid-dashboard {
+            display: grid; grid-template-columns: 2fr 1fr; gap: 2rem;
         }
 
-        h1 {
-            font-size: 4rem;
-            font-weight: 800;
-            line-height: 1.05;
-            letter-spacing: -2px;
-            text-transform: uppercase;
-            max-width: 900px;
-            margin-bottom: 2rem;
+        .matrix-box {
+            background: var(--bg-surface); border: 1px solid var(--border-matrix);
+            padding: 2rem; position: relative; margin-bottom: 2rem;
+        }
+        .matrix-box::before {
+            content: 'ATTR_SECURE_NODE'; position: absolute; top: 0; right: 2rem;
+            font-size: 0.6rem; color: var(--text-dark); transform: translateY(-50%);
+            background: var(--bg-raw); padding: 0 5px;
         }
 
-        h1 em {
-            font-style: normal;
-            color: var(--text-dark);
+        .panel-title {
+            font-size: 1.1rem; text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 1.5rem; color: var(--text-primary); border-left: 3px solid var(--neon);
+            padding-left: 10px;
         }
 
-        .hero-meta {
-            display: flex;
-            gap: 4rem;
-            margin-top: 4rem;
-            border-top: 1px solid var(--border-matrix);
-            padding-top: 2rem;
-            max-width: 800px;
+        /* Liste de fausses metrics */
+        .metrics-bar {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1rem; margin-bottom: 2rem;
         }
-
-        .meta-stat { font-size: 0.9rem; color: var(--text-secondary); }
-        .meta-stat strong { display: block; color: var(--text-primary); font-size: 1.4rem; }
-
-        /* Real-Time Live Feed (Fils d'actualités cyber) */
-        .section-feed {
-            max-width: 1400px;
-            margin: 0 auto 8rem auto;
-            padding: 0 2rem;
+        .metric-card {
+            background: var(--bg-surface-elevated); border: 1px solid var(--border-matrix);
+            padding: 1rem; text-align: left;
         }
+        .metric-card span { font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; }
+        .metric-card div { font-size: 1.4rem; font-weight: bold; color: var(--neon); margin-top: 0.2rem;}
 
-        .feed-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-            margin-bottom: 3rem;
-            border-bottom: 1px solid var(--border-matrix);
-            padding-bottom: 1rem;
+        /* Flux d'interception de données */
+        .terminal-feed {
+            background: #030508; border: 1px solid var(--border-matrix);
+            padding: 1rem; font-family: monospace; font-size: 0.8rem;
+            max-height: 300px; overflow-y: auto; color: var(--text-secondary);
         }
+        .feed-line { margin-bottom: 0.5rem; display: flex; gap: 10px; }
+        .feed-line .time { color: var(--text-dark); }
+        .feed-line .status { color: var(--neon); }
 
-        .feed-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
-            gap: 2rem;
+        /* ARSENAL PAGE (Services Détaillés) */
+        .grid-services { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .service-card {
+            background: var(--bg-surface); border: 1px solid var(--border-matrix);
+            padding: 2rem; transition: all 0.3s;
         }
+        .service-card:hover { border-color: var(--neon); background: var(--bg-surface-elevated); }
+        .service-card .num { font-size: 2rem; font-weight: 800; color: var(--text-dark); display: block; margin-bottom: 1rem; }
+        .service-card h3 { text-transform: uppercase; font-size: 1.2rem; margin-bottom: 1rem; letter-spacing: 1px; }
+        .service-card p { color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; line-height: 1.5; }
+        .gadget-list { list-style: none; border-top: 1px solid var(--border-matrix); padding-top: 1rem; }
+        .gadget-list li { font-size: 0.75rem; color: var(--neon); margin-bottom: 0.5rem; font-family: monospace; }
 
-        .feed-box {
-            background: var(--bg-surface);
-            border: 1px solid var(--border-matrix);
-            padding: 2.5rem;
+        /* ABONNEMENT TERMINAL */
+        .pricing-section { max-width: 800px; margin: 2rem auto; text-align: center; }
+        .premium-frame {
+            border: 1px solid var(--neon); background: var(--bg-surface);
+            padding: 4rem; text-align: left; box-shadow: 0 0 30px var(--neon-glow);
             position: relative;
         }
-
-        .feed-box::before {
-            content: 'SECURE_DATA_LOG';
-            position: absolute; top: 0; right: 2rem;
-            font-family: monospace; font-size: 0.65rem; color: var(--text-dark);
-            transform: translateY(-50%); background: var(--bg-raw); padding: 0 5px;
-        }
-
-        .feed-box h3 {
-            font-size: 1.3rem; margin-bottom: 1rem; text-transform: uppercase; letter-spacing: 0.5px;
-        }
-
-        .feed-box p { color: var(--text-secondary); font-size: 0.95rem; margin-bottom: 1.5rem; }
+        .price-tag { font-size: 4.5rem; font-weight: 900; margin: 1.5rem 0; color: #fff; }
+        .price-tag span { font-size: 1rem; color: var(--text-secondary); font-weight: normal; }
         
-        .tech-tags { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .tech-tags span {
-            font-family: monospace; font-size: 0.75rem;
-            background: var(--bg-surface-elevated); color: var(--text-secondary);
-            padding: 2px 8px; border-radius: 2px;
+        .btn-order {
+            display: block; width: 100%; text-align: center; background: transparent;
+            color: var(--neon); border: 1px solid var(--neon); padding: 1.5rem;
+            text-transform: uppercase; font-weight: bold; letter-spacing: 3px;
+            text-decoration: none; font-family: monospace; transition: all 0.3s;
         }
+        .btn-order:hover { background: var(--neon); color: var(--bg-raw); box-shadow: 0 0 30px var(--neon); }
 
-        /* Services & Gadgets Protocol */
-        .section-services {
-            background: var(--bg-surface);
-            border-top: 1px solid var(--border-matrix);
-            border-bottom: 1px solid var(--border-matrix);
-            padding: 8rem 2rem;
+        .spy-guarantees {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;
+            margin-top: 3rem; border-top: 1px solid var(--border-matrix); padding-top: 2rem;
         }
+        .g-box h5 { color: var(--neon); text-transform: uppercase; font-size: 0.9rem; margin-bottom: 0.5rem; }
+        .g-box p { color: var(--text-secondary); font-size: 0.8rem; }
 
-        .services-wrapper {
-            max-width: 1200px; margin: 0 auto;
-            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
-        }
-
-        .service-list { display: flex; flex-direction: column; gap: 2rem; }
-        
-        .service-item {
-            border-bottom: 1px solid var(--border-matrix);
-            padding-bottom: 2rem;
-        }
-
-        .service-item h4 {
-            font-size: 1.4rem; text-transform: uppercase; margin-bottom: 0.8rem;
-            display: flex; align-items: center; gap: 15px;
-        }
-
-        .service-item h4 span { color: var(--neon-pulse); font-family: monospace; font-size: 1rem; }
-        .service-item p { color: var(--text-secondary); font-size: 0.95rem; }
-
-        /* L'offre d'abonnement (The Node) */
-        .section-pricing {
-            max-width: 1200px; margin: 10rem auto; padding: 0 2rem; text-align: center;
-        }
-
-        .pricing-card {
-            background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-raw) 100%);
-            border: 1px solid var(--neon-pulse);
-            box-shadow: 0 0 30px var(--neon-glow);
-            max-width: 600px; margin: 0 auto; padding: 4rem 3rem;
-            position: relative; text-align: left;
-        }
-
-        .pricing-badge {
-            position: absolute; top: 0; left: 3rem; transform: translateY(-50%);
-            background: var(--neon-pulse); color: var(--bg-raw);
-            text-transform: uppercase; font-weight: 900; font-size: 0.75rem;
-            padding: 4px 12px; letter-spacing: 2px;
-        }
-
-        .price { font-size: 4rem; font-weight: 800; color: var(--text-primary); line-height: 1; margin: 1.5rem 0; }
-        .price span { font-size: 1.2rem; color: var(--text-secondary); font-weight: normal; }
-
-        .pricing-features { list-style: none; margin: 2rem 0 3rem 0; }
-        .pricing-features li {
-            margin-bottom: 1rem; color: var(--text-secondary); font-size: 1rem;
-            display: flex; align-items: center; gap: 10px;
-        }
-
-        .pricing-features li::before { content: '✓'; color: var(--neon-pulse); font-weight: bold; }
-
-        .guarantees {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;
-            border-top: 1px solid var(--border-matrix); padding-top: 2rem; margin-top: 2rem;
-        }
-
-        .guarantee-box h5 { text-transform: uppercase; font-size: 0.9rem; color: var(--text-primary); margin-bottom: 0.2rem; }
-        .guarantee-box p { font-size: 0.8rem; color: var(--text-secondary); }
-
-        /* Secure Connection Button */
-        .btn-terminal {
-            display: block; width: 100%; text-align: center;
-            background: transparent; color: var(--neon-pulse);
-            border: 1px solid var(--neon-pulse); padding: 1.2rem;
-            text-transform: uppercase; font-weight: bold; letter-spacing: 2px;
-            text-decoration: none; transition: all 0.3s;
-            font-family: monospace;
-        }
-
-        .btn-terminal:hover {
-            background: var(--neon-pulse); color: var(--bg-raw);
-            box-shadow: 0 0 20px var(--neon-pulse);
-        }
-
+        /* Footer Status */
         footer {
-            max-width: 1400px; margin: 0 auto; padding: 4rem 2rem;
-            border-top: 1px solid var(--border-matrix);
-            display: flex; justify-content: space-between; text-align: left;
-            color: var(--text-dark); font-size: 0.8rem; font-family: monospace;
+            background: var(--bg-surface); border-top: 1px solid var(--border-matrix);
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 0 2rem; font-family: monospace; font-size: 0.75rem; color: var(--text-dark);
         }
 
         @media (max-width: 900px) {
-            h1 { font-size: 2.5rem; }
-            .services-wrapper { grid-template-columns: 1fr; gap: 3rem; }
-            .hero-meta { flex-direction: column; gap: 1.5rem; }
-            .guarantees { grid-template-columns: 1fr; }
-            footer { flex-direction: column; gap: 1rem; }
+            .grid-dashboard, .grid-services, .spy-guarantees { grid-template-columns: 1fr; }
+            .metrics-bar { grid-template-columns: 1fr 1fr; }
+            header { flex-direction: column; height: auto; padding: 1rem; gap: 1rem; }
+            nav { width: 100%; justify-content: space-between; }
+            .nav-tab { padding: 0.5rem; font-size: 0.7rem; }
+            .app-container { grid-template-rows: auto 1fr 40px; }
         }
     </style>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;600;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;900&display=swap" rel="stylesheet">
 </head>
 <body>
 
-    <div class="cyber-grid"></div>
+    <div class="scanlines"></div>
 
-    <header>
-        <div class="brand">SENTINELLE<span>_</span></div>
-        <div class="console-status"><span class="blink"></span> CANAL_CHIFFRÉ_ACTIF</div>
-    </header>
+    <!-- --- INTRO ANIMÉE ESPION --- -->
+    <div id="intro-overlay">
+        <div class="boot-loader">
+            <div id="boot-text">
+                [SYSTEM LOG] CRITICAL INITIALIZATION...<br>
+                [LINK] SECURE CONNECTION REQUESTED BY USER...<br>
+                [DECRYPT] PARSING FILES (REPOSITORIES/SENTINELLE)...<br>
+                [PROXY] ROUTING VIA PROTECTED CELLULES (TECH/LEGAL)...<br>
+                [SCAN] EXTRACTING TARGET COMPETITORS INFRASTRUCTURES...<br>
+            </div>
+            <div class="scan-bar"></div>
+            <div style="text-align: center;">
+                <button class="access-btn" id="bypass-btn" onclick="unlockTerminal()">DÉVERROUILLER LE CANAL</button>
+            </div>
+        </div>
+    </div>
 
-    <!-- Section Introductive -->
-    <main class="container-hero">
-        <span class="intel-tag">Private Intelligence Matrix</span>
-        <h1>L'information tactique avant qu'elle ne devienne publique. <em>Vos concurrents sous surveillance continue.</em></h1>
+    <!-- --- APPLICATION PRINCIPALE COMPLETE --- -->
+    <div class="app-container" id="main-app">
         
-        <p class="hero-meta">
-            <span class="meta-stat">Structure active <strong>Technique &amp; Légale</strong></span>
-            <span class="meta-stat">Fréquence de livraison <strong>1 Ops / Semaine</strong></span>
-            <span class="meta-stat">Protocole réseau <strong>Discrétion Absolue</strong></span>
-        </p>
-    </main>
+        <!-- Top Control Bar -->
+        <header>
+            <div class="brand-panel">
+                <div class="logo">SENTINELLE<span>_</span></div>
+                <div style="font-size: 0.7rem; color: var(--text-secondary); font-family: monospace;">NODE_ID: STNL-2026-X</div>
+            </div>
+            <nav>
+                <button class="nav-tab active" onclick="switchPage('dashboard', this)">01 // Central</button>
+                <button class="nav-tab" onclick="switchPage('arsenal', this)">02 // L'Arsenal</button>
+                <button class="nav-tab" onclick="switchPage('intercepts', this)">03 // Interceptions</button>
+                <button class="nav-tab" onclick="switchPage('pricing', this)">04 // Infiltration</button>
+            </nav>
+        </header>
 
-    <!-- Section Actualités Cryptées -->
-    <section class="section-feed">
-        <div class="feed-header">
-            <div>
-                <span class="intel-tag">// Surveillance Flux</span>
-                <h2 style="font-size: 2rem; text-transform: uppercase;">Flux Intercepté (Exemples de Veille)</h2>
-            </div>
-        </div>
+        <!-- Dynamic Viewport -->
+        <main class="main-content">
 
-        <div class="feed-container">
-            <!-- Actu 1 -->
-            <div class="feed-box">
-                <span class="intel-tag" style="color: var(--neon-pulse);">[INTERCEPTION_CODE]</span>
-                <h3>Changement Infrastructure Acteur A</h3>
-                <p>Détection d'une bascule de serveurs vers une architecture hautement scalable et dépôt silencieux de 4 API privées dédiées à l'automatisation logistique.</p>
-                <div class="tech-tags">
-                    <span>DNS_TRACK</span> <span>REVERSE_ENG</span> <span>INFRA_MONITOR</span>
+            <!-- PAGE 1 : TABLEAU DE BORD CENTRAL -->
+            <div id="page-dashboard" class="page-panel active">
+                <div class="metrics-bar">
+                    <div class="metric-card"><span>Cibles Traquées</span><div>42 Entreprises</div></div>
+                    <div class="metric-card"><span>Mises à Jour Code/Web</span><div>1,842 Détectées</div></div>
+                    <div class="metric-card"><span>Brevets Scannés</span><div>197 Unités</div></div>
+                    <div class="metric-card"><span>Indice Discrétion</span><div>100% Total</div></div>
                 </div>
-            </div>
-            <!-- Actu 2 -->
-            <div class="feed-box">
-                <span class="intel-tag" style="color: var(--neon-pulse);">[PROPRIÉTÉ_INDUS]</span>
-                <h3>Dépôt de Marque Concurrent B</h3>
-                <p>Infiltration des registres de propriété intellectuelle : dépôt d'une marque mystère sous nomenclature internationale 42 (solutions logicielles cloud secrètes).</p>
-                <div class="tech-tags">
-                    <span>IP_RADAR</span> <span>LEGAL_WATCH</span> <span>INPI_INTERCEPT</span>
-                </div>
-            </div>
-            <!-- Actu 3 -->
-            <div class="feed-box">
-                <span class="intel-tag" style="color: var(--neon-pulse);">[TALENT_SCOUT]</span>
-                <h3>Campagne de Recrutement Cible C</h3>
-                <p>Analyse des mouvements de l'équipe RH adverse : ouverture de 3 postes d'ingénieurs spécialisés en cryptographie. Lancement imminent d'une brique sécurité détectée.</p>
-                <div class="tech-tags">
-                    <span>HR_INTELLIGENCE</span> <span>STRAT_PIVOT</span>
-                </div>
-            </div>
-        </div>
-    </section>
 
-    <!-- Nos Services Déroulés -->
-    <section class="section-services">
-        <div class="services-wrapper">
-            <div>
-                <span class="intel-tag">// Nos Domaines Opérationnels</span>
-                <h2 style="font-size: 2.5rem; text-transform: uppercase; line-height: 1.1;">L'Arsenal Tactique de Notre Équipe</h2>
-                <p style="color: var(--text-secondary); margin-top: 1.5rem; max-width: 450px;">
-                    Trois cellules d'experts (développeurs, analystes réseau et juristes d'affaires) travaillent ensemble chaque semaine pour démanteler la stratégie de vos cibles.
-                </p>
-            </div>
-            
-            <div class="service-list">
-                <div class="service-item">
-                    <h4><span>01/</span> Espionnage Technique Code &amp; Web</h4>
-                    <p>Nous surveillons les modifications invisibles apportées aux sites de vos concurrents, leurs mises à jour de code sur les répertoires publics, et l'apparition de nouvelles fonctionnalités avant leur annonce officielle.</p>
-                </div>
-                <div class="service-item">
-                    <h4><span>02/</span> Veille Juridique &amp; Institutionnelle</h4>
-                    <p>Chaque document légal, dépôt de brevet, changement de statuts d'entreprise ou immatriculation de filiale est passé au crible pour intercepter leurs manœuvres financières.</p>
-                </div>
-                <div class="service-item">
-                    <h4><span>03/</span> Le "Rapport Sentinelle" Hebdomadaire</h4>
-                    <p>Chaque fin de semaine, vous recevez un rapport ultra-détaillé et packagé. Pas de blabla, uniquement des faits bruts, de la donnée vérifiée et des prédictions actionnables.</p>
+                <div class="grid-dashboard">
+                    <div>
+                        <div class="matrix-box">
+                            <h2 class="panel-title">Mission Opérationnelle</h2>
+                            <p style="color: var(--text-secondary); margin-bottom: 1.5rem; font-size: 1rem;">
+                                Sentinelle est une cellule d'ingénieurs réseaux, de développeurs et de juristes d'affaires. Nous infiltrons légalement les métadonnées, codes sources, registres de propriété industrielle et structures légales du marché pour vous offrir une hégémonie stratégique complète.
+                            </p>
+                            <p style="color: var(--text-secondary); font-size: 0.95rem;">
+                                Chaque semaine, nos outils automatisés et notre expertise humaine extraient les secrets de développement de vos concurrents pour vous livrer un dossier d'action prêt à l'emploi.
+                            </p>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="matrix-box">
+                            <h2 class="panel-title">Flux Global Temps Réel</h2>
+                            <div class="terminal-feed" id="live-feed">
+                                <!-- Généré dynamiquement en JS -->
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-    </section>
 
-    <!-- Offre d'abonnement -->
-    <section class="section-pricing">
-        <span class="intel-tag">// Acquisition</span>
+            <!-- PAGE 2 : L'ARSENAL (NOS SERVICES & GADGETS) -->
+            <div id="page-arsenal" class="page-panel">
+                <h2 class="panel-title" style="font-size: 1.8rem; margin-bottom: 2rem;">Nos Protocoles de Surveillance Déployés</h2>
+                <div class="grid-services">
+                    <div class="service-card">
+                        <span class="num">01</span>
+                        <h3>Espionnage Technique &amp; Code</h3>
+                        <p>Analyse chirurgicale des dépôts de code publics/semi-privés, détection des changements de serveurs, des nouvelles API cachées et des redirections serveurs de vos concurrents.</p>
+                        <ul class="gadget-list">
+                            <li>+ Scan d'infrastructures DNS</li>
+                            <li>+ Tracking de déploiement GitHub/GitLab</li>
+                            <li>+ Reverse engineering d'applications</li>
+                        </ul>
+                    </div>
+                    <div class="service-card">
+                        <span class="num">02</span>
+                        <h3>Infiltration Juridique &amp; Marques</h3>
+                        <p>Surveillance automatisée 24/7 de l'INPI, de l'IPI et des registres des tribunaux de commerce. Soyez informé dès qu'une marque est déposée ou qu'une levée de fonds se prépare.</p>
+                        <ul class="gadget-list">
+                            <li>+ Alerte automatique brevets et dessins</li>
+                            <li>+ Veille réglementaire sectorielle</li>
+                            <li>+ Audit de conformité des cibles</li>
+                        </ul>
+                    </div>
+                    <div class="service-card">
+                        <span class="num">03</span>
+                        <h3>Le Rapport Sentinelle</h3>
+                        <p>Chaque lundi matin, un condensé d'intelligence pure sur votre bureau. Pas de fioritures, pas de textes inutiles : uniquement des données hautement confidentielles et prêtes à être exploitées.</p>
+                        <ul class="gadget-list">
+                            <li>+ Synthèse exécutive cryptée</li>
+                            <li>+ Cartographie des mouvements de parts</li>
+                            <li>+ Scénarios d'attaque commerciale</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 3 : INTERCEPTIONS (DÉMONSTRATION DE COMPÉTENCES) -->
+            <div id="page-intercepts" class="page-panel">
+                <div class="matrix-box">
+                    <h2 class="panel-title">Fichiers Interceptés (Simulations Réelles)</h2>
+                    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Voici le genre d'informations critiques extraites par nos analystes lors des dernières opérations de veille :</p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 1.5rem;">
+                        <div style="border-left: 2px solid var(--neon-alert); padding-left: 1.5rem;">
+                            <span style="font-family: monospace; font-size: 0.8rem; color: var(--neon-alert);">[ALERTE PIVOT STRATÉGIQUE] - CONCURRENT DIRECT A</span>
+                            <h4 style="margin: 0.3rem 0; text-transform: uppercase;">Achat de domaine et infrastructure masquée</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Interception du dépôt discret de la marque "NexusVibe" et achat groupé de 12 noms de domaines associés. Notre équipe technique a repéré la configuration d'un serveur test contenant une brique e-commerce invisible du public. Lancement estimé : 15 jours.</p>
+                        </div>
+                        <div style="border-left: 2px solid var(--neon); padding-left: 1.5rem;">
+                            <span style="font-family: monospace; font-size: 0.8rem; color: var(--neon);">[INTRUSION RH / TALENT DETECT] - CONCURRENT DIRECT B</span>
+                            <h4 style="margin: 0.3rem 0; text-transform: uppercase;">Recrutements massifs sur l'IA conversationnelle</h4>
+                            <p style="color: var(--text-secondary); font-size: 0.9rem;">Fermeture soudaine des postes marketing traditionnels au profit de l'ouverture immédiate de 4 fiches de postes d'ingénieurs Prompt et LLM Ops. La cible réoriente son budget pour automatiser son support client et casser ses prix d'ici le trimestre prochain.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PAGE 4 : TARIF & ABONNEMENT -->
+            <div id="page-pricing" class="page-panel">
+                <div class="pricing-section">
+                    <div class="premium-frame">
+                        <h3 style="text-transform: uppercase; letter-spacing: 2px; font-size: 1.5rem;">Licence d'Accès Réseau Sentinelle</h3>
+                        <p style="color: var(--text-secondary); font-size: 0.9rem;">Veille globale automatisée et humaine en continu.</p>
+                        
+                        <div class="price-tag">200€ <span style="font-family: monospace;">/ mois</span></div>
+                        
+                        <a href="mailto:Sentinellefr@gmail.com?subject=[PROTOCOLE_INIT] Demande d'activation Sentinelle" class="btn-order">Activer l'Accès Réseau</a>
+                        
+                        <div class="spy-guarantees">
+                            <div class="g-box">
+                                <h5>🥷 Infiltration Sans Risque</h5>
+                                <p>Si nos analyses et livrables ne révèlent absolument aucun élément secret ou exploitable sur vos concurrents durant les 30 premiers jours, nous annulons le protocole et vous êtes intégralement remboursé.</p>
+                            </div>
+                            <div class="g-box">
+                                <h5>🚪 Extraction Libre</h5>
+                                <p>Aucune obligation contractuelle de durée. Vous quittez la cellule de veille à tout moment d'un simple clic, sans aucune justification requise.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </main>
+
+        <!-- Bottom Interface Bar -->
+        <footer>
+            <div>SECURITY STATUS: SECURE // SYS_2026_ACTIVE</div>
+            <div>CONTACT: SENTINELLEFR@GMAIL.COM</div>
+        </footer>
+    </div>
+
+    <!-- --- MODULE ANIMATION LOGIQUE TERMINAL --- -->
+    <script>
+        // Simulation de chargement de lignes de terminal d'espion au début
+        const logs = [
+            "[OK] CONNECTING TO BACKEND INFILTRATION GRID...",
+            "[OK] DECRYPTING COMPONENT INTERFACES...",
+            "[WARNING] COMPETITOR FIREWALL DETECTED - BYPASSING...",
+            "[OK] FIREWALL BYPASSED. INJECTING SENTINELLE CORE...",
+            "[OK] DATA SYNCHRONIZATION 100% COMPLETE.",
+            "=== SYSTEM READY FOR DISCRETION OPERATIVE ==="
+        ];
         
-        <div class="pricing-card">
-            <span class="pricing-badge">Abonnement Opérationnel Tout-Inclus</span>
-            <h3 style="font-size: 1.8rem; text-transform: uppercase;">Accès Au Réseau Sentinelle</h3>
-            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 0.5rem;">Veille continue, rapports stratégiques et alertes instantanées.</p>
-            
-            <div class="price">200€ <span>/ mois</span></div>
-            
-            <ul class="pricing-features">
-                <li>Veille technique et juridique exhaustive (7j/7)</li>
-                <li>Le Rapport Sentinelle complet livré chaque semaine</li>
-                <li>Système d'Alerte Flash en cas d'action concurrente critique</li>
-                <li>Canal d'échange direct avec notre équipe d'analystes</li>
-            </ul>
+        let currentLogIndex = 0;
+        const bootTextDiv = document.getElementById("boot-text");
 
-            <a href="mailto:Sentinellefr@gmail.com?subject=[COMMANDE] Activation Abonnement Sentinelle" class="btn-terminal">Activer le Protocole d'Accès</a>
+        function simulateBoot() {
+            if (currentLogIndex < logs.length) {
+                bootTextDiv.innerHTML += logs[currentLogIndex] + "<br>";
+                currentLogIndex++;
+                setTimeout(simulateBoot, 600);
+            } else {
+                document.getElementById("bypass-btn").classList.add("ready");
+            }
+        }
+        
+        // Lance l'animation d'intro dès le chargement de l'écran
+        setTimeout(simulateBoot, 500);
+
+        function unlockTerminal() {
+            document.getElementById("intro-overlay").style.display = "none";
+            const app = document.getElementById("main-app");
+            app.style.opacity = "1";
+        }
+
+        // Système de changement de page (onglets dynamiques)
+        function switchPage(pageId, button) {
+            // Désactiver tous les onglets et pages
+            document.querySelectorAll('.page-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
             
-            <!-- Les Jeux de mots d'Espion -->
-            <div class="guarantees">
-                <div class="guarantee-box">
-                    <h5>🥷 Infiltration Sans Risque</h5>
-                    <p>Satisfait ou intégralement remboursé pendant les 30 premiers jours si nos rapports ne révèlent rien d'exploitable.</p>
-                </div>
-                <div class="guarantee-box">
-                    <h5>🚪 Extraction Libre</h5>
-                    <p>Aucun engagement de durée. Vous pouvez vous retirer de notre réseau de diffusion et résilier à tout moment, sans justification.</p>
-                </div>
-            </div>
-        </div>
-    </section>
+            // Activer la bonne page et le bon bouton
+            document.getElementById('page-' + pageId).classList.add('active');
+            button.classList.add('active');
+        }
 
-    <footer>
-        <div>
-            <p>CONSOLES: ACTIVE // SECURE_NODE_OK</p>
-            <p>Sentinelle Network — Liaison de renseignement commercial privé.</p>
-        </div>
-        <div>
-            <p>EMAIL: SENTINELLEFR@GMAIL.COM</p>
-            <p>DATE_LOG: 2026_SYS_LIVE</p>
-        </div>
-    </footer>
+        // Générateur de fausses données en direct pour le flux du tableau de bord
+        const feed = document.getElementById("live-feed");
+        const feedTargets = ["Acteur Alpha", "Concurrent B", "Société Stratégique Z", "Cible Gamma"];
+        const feedActions = ["Mise à jour SSL", "Modification script App.js", "Requête DNS suspecte", "Dépôt de brevet détecté", "Changement de prix HTML"];
 
+        function updateLiveFeed() {
+            const time = new Date().toLocaleTimeString();
+            const target = feedTargets[Math.floor(Math.random() * feedTargets.length)];
+            const action = feedActions[Math.floor(Math.random() * feedActions.length)];
+            
+            const line = document.createElement("div");
+            line.className = "feed-line";
+            line.innerHTML = `<span class="time">[${time}]</span> <span class="status">▲ TRACKING</span> [${target}] ${action}`;
+            
+            feed.insertBefore(line, feed.firstChild);
+            if (feed.children.length > 8) feed.removeChild(feed.lastChild);
+            
+            setTimeout(updateLiveFeed, 3000);
+        }
+        updateLiveFeed();
+    </script>
 </body>
 </html>
+v                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       
