@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SENTINELLE — Intelligence Concurrentielle & Veille Stratégique</title>
+    <style>
+        :root {
+            --bg-deep: #05070a; /* Noir chauve-souris / technologique */
+            --bg-card: #0c0f14; /* Gris carbone */
+            --accent-green: #00ff66; /* Vert radar / cyber */
+            --accent-dim: rgba(0, 255, 102, 0.15);
+            --text-pure: #ffffff;
+            --text-muted: #626f84; /* Gris discret */
+            --border-color: #161b22;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Space Grotesk', 'Segoe UI', sans-serif;
+        }
+
+        body {
+            background-color: var(--bg-deep);
+            color: var(--text-pure);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Effet de grille en arrière-plan (mode matrice/espion) */
+        .bg-grid {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: linear-gradient(var(--border-color) 1px, transparent 1px),
+                              linear-gradient(90deg, var(--border-color) 1px, transparent 1px);
+            background-size: 50px 50px;
+            opacity: 0.15;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        /* En-tête */
+        header {
+            padding: 2.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1300px;
+            margin: 0 auto;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .logo {
+            font-weight: 800;
+            font-size: 1.6rem;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo span {
+            color: var(--accent-green);
+            text-shadow: 0 0 10px var(--accent-green);
+        }
+
+        .status-badge {
+            font-size: 0.75rem;
+            background: var(--accent-dim);
+            color: var(--accent-green);
+            padding: 4px 12px;
+            border-radius: 20px;
+            border: 1px solid var(--accent-green);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        /* Section Principale (Hero) */
+        .hero {
+            max-width: 1000px;
+            margin: 6rem auto;
+            text-align: center;
+            padding: 0 2rem;
+        }
+
+        .hero h2 {
+            font-size: 3.5rem;
+            font-weight: 700;
+            letter-spacing: -1px;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+        }
+
+        .hero h2 span {
+            color: var(--text-muted);
+        }
+
+        .hero p {
+            color: var(--text-muted);
+            font-size: 1.2rem;
+            max-width: 650px;
+            margin: 0 auto 3rem auto;
+            letter-spacing: 0.5px;
+        }
+
+        /* Piliers d'expertise (Technique & Juridique) */
+        .pillars {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+            max-width: 1200px;
+            margin: 0 auto 6rem auto;
+            padding: 0 2rem;
+        }
+
+        .pillar-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 2.5rem;
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.4s ease;
+        }
+
+        .pillar-card:hover {
+            border-color: var(--accent-green);
+            transform: translateY(-5px);
+        }
+
+        .pillar-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .pillar-card h3 span {
+            color: var(--accent-green);
+        }
+
+        .pillar-card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* La Proposition : Ce que vous recevez */
+        .delivery {
+            background-color: var(--bg-card);
+            border-top: 1px solid var(--border-color);
+            border-bottom: 1px solid var(--border-color);
+            padding: 5rem 2rem;
+            text-align: center;
+        }
+
+        .delivery-title {
+            font-size: 2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 3rem;
+        }
+
+        .grid-features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 3rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .feature {
+            text-align: left;
+            border-left: 2px solid var(--accent-green);
+            padding-left: 1.5rem;
+        }
+
+        .feature h4 {
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            letter-spacing: 1px;
+        }
+
+        .feature p {
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        /* Bouton Action / Contact Ultra-Discret */
+        .cta-section {
+            text-align: center;
+            margin: 7rem 0;
+            padding: 0 2rem;
+        }
+
+        .cta-section h3 {
+            font-size: 1.8rem;
+            text-transform: uppercase;
+            margin-bottom: 1.5rem;
+            letter-spacing: 1px;
+        }
+
+        .btn-secure {
+            background-color: transparent;
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+            padding: 1.2rem 3rem;
+            font-size: 1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 15px var(--accent-dim);
+            display: inline-block;
+        }
+
+        .btn-secure:hover {
+            background-color: var(--accent-green);
+            color: var(--bg-deep);
+            box-shadow: 0 0 25px var(--accent-green);
+        }
+
+        /* Footer / Sign-off */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border-color);
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            letter-spacing: 1px;
+        }
+
+        .crypt-text {
+            font-family: monospace;
+            opacity: 0.5;
+            margin-top: 0.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .hero h2 { font-size: 2.2rem; }
+            header { flex-direction: column; gap: 1rem; }
+        }
+    </style>
+    <!-- Import d'une police très techno/moderne -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;700;800&display=swap" rel="stylesheet">
+</head>
+<body>
+
+    <div class="bg-grid"></div>
+
+    <header>
+        <div class="logo">🜲 SENTINELLE<span>.</span></div>
+        <div class="status-badge">● Liaison Sécurisée Établie</div>
+    </header>
+
+    <section class="hero">
+        <h2>Sachez tout avant eux.<br><span>Restez invisible.</span></h2>
+        <p>Cellule de veille concurrentielle augmentée. Nous infiltrons les données du marché pour vous transmettre chaque semaine les mouvements stratégiques et innovations de vos concurrents direct.</p>
+    </section>
+
+    <!-- Nos Piliers de Force -->
+    <section class="pillars">
+        <div class="pillar-card">
+            <h3><span>01/</span> Veille Technique</h3>
+            <p>Nos analystes traquent les dépôts de code, les changements d'infrastructures et les évolutions logicielles de vos cibles. Rien ne passe sous notre radar.</p>
+        </div>
+        <div class="pillar-card">
+            <h3><span>02/</span> Analyse Juridique</h3>
+            <p>Surveillance active des dépôts de marques, brevets, structures légales et mouvements réglementaires pour anticiper leurs prochains lancements.</p>
+        </div>
+        <div class="pillar-card">
+            <h3><span>03/</span> Secret Absolu</h3>
+            <p>La discrétion est notre protocole maître. Nos interventions, nos méthodes et l'identité de nos clients font l'objet d'un chiffrement stratégique total.</p>
+        </div>
+    </section>
+
+    <!-- Livrables hebdomadaires -->
+    <section class="delivery">
+        <h3 class="delivery-title">Le protocole hebdomadaire</h3>
+        <div class="grid-features">
+            <div class="feature">
+                <h4>Le Rapport Sentinelle</h4>
+                <p>Chaque lundi matin, une synthèse exhaustive contenant toutes les nouveautés et indiscrétions du marché ciblé.</p>
+            </div>
+            <div class="feature">
+                <h4>Alerte Signal</h4>
+                <p>Un concurrent modifie une offre ou dépose un brevet critique ? Vous êtes alerté en priorité dans les 2 heures.</p>
+            </div>
+            <div class="feature">
+                <h4>Outils d'Analyse</h4>
+                <p>Accès à nos tableaux de bord confidentiels pour suivre l'évolution des données collectées en temps réel.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section de Contact Sécurisée -->
+    <section class="cta-section">
+        <h3>Entrer dans la boucle</h3>
+        <p style="color: var(--text-muted); margin-bottom: 2rem;">Demande d'informations et audit de votre secteur sous protocole confidentiel.</p>
+        <a href="mailto:Sentinellefr@gmail.com?subject=[CONFIDENTIEL] Demande d'initiation Sentinelle" class="btn-secure">Ouvrir un canal sécurisé</a>
+    </section>
+
+    <footer>
+        <p>© 2026 SENTINELLE | PROTECTION ET VEILLE STRATÉGIQUE CONCURRENTIELLE</p>
+        <div class="crypt-text">SYS_STATUS: ACTIVE // CLASSIFIED_DATA_NOTICE</div>
+    </footer>
+
+</body>
+</html>
